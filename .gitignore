@@ -1,0 +1,95 @@
+# -----------------
+# Global
+# -----------------
+.DS_Store
+.env
+.mypy_cache
+.idea/
+.vscode/
+*.code-workspace
+*.bin
+*.env
+*.ipynb
+*.log
+*.pyc
+*.pyo
+*.so
+*Zone.Identifier
+*.egg-info/
+__pycache__/
+
+# files
+*.db
+*.gguf
+*.html
+*.mkv
+*.mp3
+*.mp4
+*.sh
+*.sqlite3
+**/queries.txt
+*.txt
+*.wav
+*.webm
+*.zip
+
+# directories
+**/build/
+**/data/
+**/dist/
+**/env/
+**/lib/
+**/log*/
+**/models/
+**/output/
+**/results/
+**/session/
+**/test*/
+**/uploads/
+**/venv/
+**/workbench/
+
+# -----------------
+# Backend (Python)
+# -----------------
+
+# Compiled files and caches
+*.py[cod]
+
+# SQLite DBs (optional)
+*.sqlite3
+*.db
+
+# Optional editor/IDE/project file ignores (if working in frontend separately)
+**/.suo
+**/.ntvs*
+**/.njsproj
+**/.sln
+**/.sw?
+
+# Global frontend output
+dist/
+build/
+
+# -----------------
+# Docker
+# -----------------
+*.pid
+*.sock
+docker-compose.override.yml
+
+# Hidden files (keep important ones)
+.*
+!.gitignore
+!.dockerignore
+
+# ==================================
+# Media & Data (Optional)
+# ==================================
+**/data*/
+**/models/
+
+# ==================================
+# Exceptions
+# ==================================
+!frontend/index.html
