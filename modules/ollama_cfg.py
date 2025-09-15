@@ -12,7 +12,21 @@ logger = logging.getLogger(__name__)
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
 
-def _load_ollama_model(
+def _get_ollama_health(url: str = OLLAMA_HOST) -> bool:
+    """
+    Perform a health check by querying Ollama's /api/tags endpoint.
+
+    Args:
+        url (str, optional): The base URL of the Ollama server. Defaults to environment variable or localhost.
+
+    Returns:
+        bool: True if the Ollama server responds with model tags, False otherwise.
+    """
+    response = requests.get(f"{url}/api/tags", timeout=5)
+    return response.status_code == 200 and "models" in response.json()
+
+
+def load_ollama_model(
     filename: str = "ollama_models.json", fallback: str = "gemma3n:e4b"
 ) -> str | None:
     """
@@ -44,21 +58,8 @@ def _load_ollama_model(
     return model
 
 
-def _get_ollama_health(url: str = OLLAMA_HOST) -> bool:
-    """
-    Perform a health check by querying Ollama's /api/tags endpoint.
-
-    Args:
-        url (str, optional): The base URL of the Ollama server. Defaults to environment variable or localhost.
-
-    Returns:
-        bool: True if the Ollama server responds with model tags, False otherwise.
-    """
-    response = requests.get(f"{url}/api/tags", timeout=5)
-    return response.status_code == 200 and "models" in response.json()
-
-
 def call_ollama_server(
+    model: str | None,
     prompt: str,
     think: bool = False,
     num_ctx: int = 16384,
@@ -73,6 +74,7 @@ def call_ollama_server(
     Call the ollama server with the given model and prompt.
 
     Args:
+        model (str | None): The name of the model to use.
         prompt (str): The prompt to send to the model.
         think (bool): Whether to enable "think" mode for the model. Defaults to False.
         num_ctx (int): The number of context tokens to use. Defaults to 16384.
@@ -89,7 +91,8 @@ def call_ollama_server(
     Raises:
         RuntimeError: If the Ollama model cannot be loaded or the server is unreachable.
     """
-    model = _load_ollama_model()
+    if not model:
+        model = load_ollama_model()
 
     if not model:
         raise RuntimeError(

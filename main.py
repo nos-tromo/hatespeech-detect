@@ -1,20 +1,36 @@
 import logging
+import os
 import re
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 
-from modules.ollama_cfg import call_ollama_server, hate_detection_prompt
+from modules.ollama_cfg import (
+    call_ollama_server,
+    hate_detection_prompt,
+    load_ollama_model,
+)
 from utils.logging_cfg import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Environment and file paths
+# Set up environment variables in a .env file or export them in your shell
+load_dotenv()
+HOME_DIR = Path.home()
+DATA_DIR = Path(os.getenv("DATA_DIR", ""))
+IN_FILE = os.getenv("IN_FILE", "")
 
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-DATA = DATA_DIR / ""
-RESULTS = DATA_DIR / ""
+if not DATA_DIR or not IN_FILE:
+    raise ValueError("Both DATA_DIR and IN_FILE environment variables must be set")
+
+DATA = HOME_DIR / DATA_DIR / IN_FILE
+if not DATA.is_file():
+    raise FileNotFoundError(f"Input data file '{DATA}' not found")
+
+RESULTS = DATA.with_name(f"{DATA.stem}_hatespeech.csv")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
@@ -72,26 +88,27 @@ def _parse_binary_label(resp: str) -> int:
         if re.fullmatch(r"[01]", tok):
             return int(tok)
 
-    logger.error(f"Non-binary Ollama response: {resp!r}")
+    logger.error("Non-binary Ollama response: %r", resp)
     return -1
 
 
-def run_hate_speech_detection(text: str) -> int:
+def run_hate_speech_detection(text: str, model: str | None) -> int:
     """
     Run hate speech detection on the given text using the Ollama model.
 
     Args:
         text (str): The text to analyze for hate speech.
+        model (str | None): The name of the Ollama model to use (or None).
 
     Returns:
         int: The hate speech detection label (0 or 1), or -1 if detection failed.
     """
     prompt = _load_prompt(text)
-    raw_response = call_ollama_server(prompt=prompt, think=False)
+    raw_response = call_ollama_server(model=model, prompt=prompt, think=False)
     return _parse_binary_label(raw_response)
 
 
-def store_output(df: pd.DataFrame, file_path: Path = RESULTS):
+def store_output(df: pd.DataFrame, file_path: Path = RESULTS) -> None:
     """
     Store the DataFrame to a CSV file.
 
@@ -103,21 +120,24 @@ def store_output(df: pd.DataFrame, file_path: Path = RESULTS):
     print(f"Results saved to '{file_path}'")
 
 
-def main():
+def main() -> None:
     """
     Main function to load data, run hate speech detection, and store results.
     """
     df = load_data(DATA)
+
     # Pre-create result column as nullable integer to avoid float coercion
     df["class"] = pd.Series([pd.NA] * len(df), dtype="Int8")
+    model = load_ollama_model()
     for row in df.iterrows():
         print(f"Processing row {row[0]}: {row[1]['text'][:50]}...")
-        label = run_hate_speech_detection(row[1]["text"])
+        label = run_hate_speech_detection(text=row[1]["text"], model=model)
         if label in (0, 1):
-            df.at[row[0], "ollama_response"] = int(label)
+            df.at[row[0], "class"] = int(label)
         else:
             # keep as <NA> instead of writing -1, preserves Int8 dtype
-            df.at[row[0], "ollama_response"] = pd.NA
+            df.at[row[0], "class"] = pd.NA
+    
     store_output(df)
 
 
