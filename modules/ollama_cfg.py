@@ -78,6 +78,10 @@ def call_ollama_server(
         num_ctx (int): The number of context tokens to use. Defaults to 16384.
         seed (int): The random seed for the model's response. Defaults to 42.
         temperature (float): The temperature for the model's response. Defaults to 0.1.
+        top_k (int): The top_k parameter for the model's response. Defaults to 1.
+        top_p (float): The top_p parameter for the model's response. Defaults to 0.0.
+        num_predict (int): The number of tokens to predict. Defaults to 1.
+        stop (list[str]): A list of stop sequences for the model's response. Defaults to ["\n"].
 
     Returns:
         str: The response from the ollama server, or an empty string if an error occurs.
