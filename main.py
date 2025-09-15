@@ -88,7 +88,7 @@ def _parse_binary_label(resp: str) -> int:
         if re.fullmatch(r"[01]", tok):
             return int(tok)
 
-    logger.error(f"Non-binary Ollama response: {resp!r}")
+    logger.error("Non-binary Ollama response: %r", resp)
     return -1
 
 
