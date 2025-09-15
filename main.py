@@ -1,8 +1,10 @@
 import logging
+import os
 import re
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 
 from modules.ollama_cfg import call_ollama_server, hate_detection_prompt
 from utils.logging_cfg import setup_logging
@@ -10,11 +12,21 @@ from utils.logging_cfg import setup_logging
 setup_logging()
 logger = logging.getLogger(__name__)
 
+# Environment and file paths
+# Set up environment variables in a .env file or export them in your shell
+load_dotenv()
+HOME_DIR = Path.home()
+DATA_DIR = Path(os.getenv("DATA_DIR", ""))
+IN_FILE = os.getenv("IN_FILE", "")
 
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
-DATA = DATA_DIR / ""
-RESULTS = DATA_DIR / ""
+if not DATA_DIR or not IN_FILE:
+    raise ValueError("Both DATA_DIR and IN_FILE environment variables must be set")
+
+DATA = HOME_DIR / DATA_DIR / IN_FILE
+if not DATA.is_file():
+    raise FileNotFoundError(f"Input data file '{DATA}' not found")
+
+RESULTS = DATA.with_name(f"{DATA.stem}_hatespeech.csv")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
