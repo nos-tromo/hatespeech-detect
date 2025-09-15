@@ -6,7 +6,11 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 
-from modules.ollama_cfg import call_ollama_server, hate_detection_prompt
+from modules.ollama_cfg import (
+    call_ollama_server,
+    hate_detection_prompt,
+    load_ollama_model,
+)
 from utils.logging_cfg import setup_logging
 
 setup_logging()
