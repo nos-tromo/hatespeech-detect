@@ -19,6 +19,7 @@
 __pycache__/
 
 # files
+*.csv
 *.db
 *.gguf
 *.html
