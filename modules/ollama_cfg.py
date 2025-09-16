@@ -29,7 +29,7 @@ def _get_ollama_health(url: str = OLLAMA_HOST) -> bool:
 
 
 def load_ollama_model(
-    filename: str = "ollama_models.json", fallback: str = "gemma3n:e4b"
+    filename: str = "ollama_models.json", fallback: str = "qwen3:8b"
 ) -> str | None:
     """
     Load the specified ollama model.
