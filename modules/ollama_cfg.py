@@ -77,6 +77,7 @@ def load_prompt(keyword: str = "system") -> str:
     if not prompt_path.is_file():
         raise FileNotFoundError(f"Prompt file for keyword '{keyword}' not found.")
     with open(prompt_path, "r", encoding="utf-8") as f:
+        logger.info("Loaded prompt from '%s'", prompt_path)
         return f.read()
 
 
