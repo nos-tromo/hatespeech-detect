@@ -92,9 +92,9 @@ def _parse_binary_label(resp: str) -> int:
     return -1
 
 
-def run_hate_speech_detection(text: str, model: str | None) -> int:
+def run_inference(text: str, model: str | None, keyword: str = "hate") -> int:
     """
-    Run hate speech detection on the given text using the Ollama model.
+    Run inference on the given text using the Ollama model.
 
     Args:
         text (str): The text to analyze for hate speech.
@@ -131,7 +131,7 @@ def main() -> None:
     model = load_ollama_model()
     for row in df.iterrows():
         print(f"Processing row {row[0]}: {row[1]['text'][:50]}...")
-        label = run_hate_speech_detection(text=row[1]["text"], model=model)
+        label = run_inference(text=row[1]["text"], model=model)
         if label in (0, 1):
             df.at[row[0], "class"] = int(label)
         else:
