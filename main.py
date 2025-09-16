@@ -19,18 +19,18 @@ logger = logging.getLogger(__name__)
 # Environment and file paths
 # Set up environment variables in a .env file or export them in your shell
 load_dotenv()
-HOME_DIR = Path.home()
-DATA_DIR = Path(os.getenv("DATA_DIR", ""))
-IN_FILE = os.getenv("IN_FILE", "")
+HOME_DIR: Path = Path.home()
+DATA_DIR: str = os.getenv("DATA_DIR", "")
+FILE: str = os.getenv("FILE", "")
 
-if not DATA_DIR or not IN_FILE:
-    raise ValueError("Both DATA_DIR and IN_FILE environment variables must be set")
+if not DATA_DIR or not FILE:
+    raise ValueError("Both DATA_DIR and FILE environment variables must be set")
 
-DATA = HOME_DIR / DATA_DIR / IN_FILE
+DATA: Path = HOME_DIR / DATA_DIR / FILE
 if not DATA.is_file():
     raise FileNotFoundError(f"Input data file '{DATA}' not found")
 
-RESULTS = DATA.with_name(f"{DATA.stem}_hatespeech.csv")
+RESULTS: Path = DATA.with_name(f"{DATA.stem}_hatespeech.csv")
 
 
 def load_data(file_path: Path) -> pd.DataFrame:
