@@ -6,11 +6,7 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 
-from modules.ollama_cfg import (
-    call_ollama_server,
-    load_ollama_model,
-    load_prompt
-)
+from modules.ollama_cfg import call_ollama_server, load_ollama_model, load_prompt
 from utils.logging_cfg import setup_logging
 
 setup_logging()
@@ -124,7 +120,7 @@ def main() -> None:
         else:
             # keep as <NA> instead of writing -1, preserves Int8 dtype
             df.at[row[0], "class"] = pd.NA
-    
+
     store_output(df)
 
 
