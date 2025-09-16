@@ -46,20 +46,6 @@ def load_data(file_path: Path) -> pd.DataFrame:
     return pd.read_csv(file_path, encoding="utf-8")
 
 
-def _construct_prompt(text: str, language: str = "German") -> str:
-    """
-    Load and format the prompt.
-
-    Args:
-        text (str): The text to analyze.
-        language (str, optional): The language of the text. Defaults to "German".
-
-    Returns:
-        str: The formatted prompt for the hate speech detection model.
-    """
-    return load_prompt("hate").format(language=language, text=text)
-
-
 def _parse_binary_label(resp: str) -> int:
     """
     Parse the model response to extract a binary label (0 or 1).
@@ -99,13 +85,14 @@ def run_inference(text: str, model: str | None, keyword: str = "hate") -> int:
     Args:
         text (str): The text to analyze for hate speech.
         model (str | None): The name of the Ollama model to use (or None).
+        keyword (str, optional): The keyword to identify the prompt file. Defaults to "hate".
 
     Returns:
         int: The hate speech detection label (0 or 1), or -1 if detection failed.
     """
-    prompt = _construct_prompt(text)
-    raw_response = call_ollama_server(model=model, prompt=prompt, think=False)
-    return _parse_binary_label(raw_response)
+    prompt = load_prompt(keyword).format(text=text)
+    response = call_ollama_server(model=model, prompt=prompt, think=False)
+    return _parse_binary_label(response)
 
 
 def store_output(df: pd.DataFrame, file_path: Path = RESULTS) -> None:
