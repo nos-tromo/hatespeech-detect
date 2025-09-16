@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import ollama
 import requests
@@ -9,7 +10,8 @@ from utils.mappings_loader import load_mappings
 
 logger = logging.getLogger(__name__)
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_HOST: str = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+PROMPT_DIR: Path = Path(__file__).parent.parent / "utils" / "prompts"
 
 
 def _get_ollama_health(url: str = OLLAMA_HOST) -> bool:
@@ -56,6 +58,26 @@ def load_ollama_model(
     )
     logger.info("Loaded Ollama model: %s", model)
     return model
+
+
+def load_prompt(keyword: str = "system") -> str:
+    """
+    Load a prompt from the prompts directory based on the given keyword.
+
+    Args:
+        keyword (str, optional): The keyword to identify the prompt file. Defaults to "system".
+
+    Returns:
+        str: The content of the prompt file.
+
+    Raises:
+        FileNotFoundError: If the prompt file for the given keyword does not exist.
+    """
+    prompt_path = PROMPT_DIR / f"{keyword}.txt"
+    if not prompt_path.is_file():
+        raise FileNotFoundError(f"Prompt file for keyword '{keyword}' not found.")
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 
 def call_ollama_server(
@@ -126,62 +148,3 @@ def call_ollama_server(
         },
     )
     return response["message"]["content"].strip()
-
-
-# System prompt
-system_prompt = """
-You are a highly proficient assistant that strictly follows instructions and provides only the requested output.
-Do not include interpretations, comments, or acknowledgments unless explicitly asked.
-Do not use confirmation phrases such as "Sure, here it comes:", "Got it.", "Here is the translation:", or similar expressions.
-Responses shall be generated without any markdown formatting unless specified otherwise.
-All your outputs must be in {language} language regardless of the input language.
-"""
-
-# Violence and hate speech detection
-hate_detection = """
-You are an expert in identifying and classifying content related to violence and hate speech.
-Analyze the following text and determine if it contains any violent or hate speech content. 
-For each identified instance, classify it into the following categories: 
-"1" - if it contains violent or hate speech content; 
-"0" -  if no such content is present.
-
-Text to analyze:
-"{text}"
-"""
-
-# Text summarization
-text_summarization = """
-You are an expert summarizer. Create a concise and coherent summary of the following text, capturing all key points and essential information.
-
-Instructions:
-1. Content Coverage: Ensure that the summary includes all main ideas and important details from the original text.
-2. Brevity: The summary should be no longer than 15 sentences.
-3. Clarity: Use clear and straightforward language. All your outputs must be in {language} language.
-4. No Additional Information: Do not include personal opinions, interpretations, or external information.
-5. No Extraneous Information: Do not include any Markdown code blocks, additional formatting, or extraneous information.
-
-Text to Summarize:
-"{text}"
-"""
-
-# Topic summarization
-topic_titles = """
-You are an expert for topic modeling that is highly proficient in generating topic titles from raw text.
-I have a topic that is described by the following keywords: "{keywords}"
-The topic contains the following documents: \n"{docs}"
-Based on the above information, generate a short label of the topic of at most 5 words.
-"""
-
-topic_summaries = """
-You are an expert for topic modeling that is highly proficient in summarizing topics from raw text.
-I have a topic that is described by the following title: "{title}"
-The topic is described by the following keywords: "{keywords}"
-The topic contains the following documents: \n"{docs}"
-Based on the above information, create a short summary of the topic.
-"""
-
-# Combine prompts with system prompt
-hate_detection_prompt = system_prompt + "\n\n" + hate_detection
-text_summarization_prompt = system_prompt + "\n\n" + text_summarization
-topic_titles_prompt = system_prompt + "\n\n" + topic_titles
-topic_summaries_prompt = system_prompt + "\n\n" + topic_summaries
