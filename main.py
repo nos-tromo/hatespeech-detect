@@ -6,11 +6,12 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 
-from modules.ollama_cfg import call_ollama_server, load_ollama_model, load_prompt
+from modules.ollama_cfg import OllamaPipeline
 from utils.logging_cfg import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
+
 
 # Environment and file paths
 # Set up environment variables in a .env file or export them in your shell
@@ -74,20 +75,18 @@ def _parse_binary_label(resp: str) -> int:
     return -1
 
 
-def run_inference(text: str, model: str | None, keyword: str = "hate") -> int:
+def run_inference(olm: OllamaPipeline, prompt: str) -> int:
     """
     Run inference on the given text using the Ollama model.
 
     Args:
-        text (str): The text to analyze for hate speech.
-        model (str | None): The name of the Ollama model to use (or None).
-        keyword (str, optional): The keyword to identify the prompt file. Defaults to "hate".
+        olm (OllamaPipeline): The OllamaPipeline instance to use for inference.
+        prompt (str): The input text to classify.
 
     Returns:
         int: The hate speech detection label (0 or 1), or -1 if detection failed.
     """
-    prompt = load_prompt(keyword).format(text=text)
-    response = call_ollama_server(model=model, prompt=prompt, think=False)
+    response = olm.call_ollama_server(prompt=prompt)
     return _parse_binary_label(response)
 
 
@@ -109,12 +108,16 @@ def main() -> None:
     """
     df = load_data(DATA)
 
+    olm = OllamaPipeline()
+
     # Pre-create result column as nullable integer to avoid float coercion
     df["class"] = pd.Series([pd.NA] * len(df), dtype="Int8")
-    model = load_ollama_model()
+    prompt = olm.load_prompt("hate")
     for row in df.iterrows():
-        print(f"Processing row {row[0]}: {row[1]['text'][:50]}...")
-        label = run_inference(text=row[1]["text"], model=model)
+        text = row[1]["text"]
+        print(f"Processing row {row[0]}: {text[:50]}...")
+        prompt = prompt.format(text=text)
+        label = run_inference(olm, prompt)
         if label in (0, 1):
             df.at[row[0], "class"] = int(label)
         else:
