@@ -115,19 +115,20 @@ def call_ollama_server(
     Raises:
         RuntimeError: If the Ollama model cannot be loaded or the server is unreachable.
     """
-    if not model:
-        model = load_ollama_model()
-
-    if not model:
-        raise RuntimeError(
-            "Ollama model could not be loaded. Please check your configuration."
-        )
     if not _get_ollama_health():
         logger.error(
             "Ollama server does not respond. Please ensure it is running and accessible."
         )
         raise RuntimeError(
             "Ollama server is not reachable. Please check your configuration."
+        )
+    
+    if not model:
+        model = load_ollama_model()
+
+    if not model:
+        raise RuntimeError(
+            "Ollama model could not be loaded. Please check your configuration."
         )
 
     # Ensure environment variable is set for ollama library
