@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 
 from modules.ollama_cfg import (
     call_ollama_server,
-    hate_detection_prompt,
     load_ollama_model,
+    load_prompt
 )
 from utils.logging_cfg import setup_logging
 
@@ -46,9 +46,9 @@ def load_data(file_path: Path) -> pd.DataFrame:
     return pd.read_csv(file_path, encoding="utf-8")
 
 
-def _load_prompt(text: str, language: str = "German") -> str:
+def _construct_prompt(text: str, language: str = "German") -> str:
     """
-    Load and format the hate speech detection prompt.
+    Load and format the prompt.
 
     Args:
         text (str): The text to analyze.
@@ -57,7 +57,7 @@ def _load_prompt(text: str, language: str = "German") -> str:
     Returns:
         str: The formatted prompt for the hate speech detection model.
     """
-    return hate_detection_prompt.format(language=language, text=text)
+    return load_prompt("hate").format(language=language, text=text)
 
 
 def _parse_binary_label(resp: str) -> int:
@@ -103,7 +103,7 @@ def run_hate_speech_detection(text: str, model: str | None) -> int:
     Returns:
         int: The hate speech detection label (0 or 1), or -1 if detection failed.
     """
-    prompt = _load_prompt(text)
+    prompt = _construct_prompt(text)
     raw_response = call_ollama_server(model=model, prompt=prompt, think=False)
     return _parse_binary_label(raw_response)
 
