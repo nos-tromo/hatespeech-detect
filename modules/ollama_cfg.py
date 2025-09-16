@@ -84,6 +84,7 @@ def call_ollama_server(
     model: str | None,
     prompt: str,
     think: bool = False,
+    language: str = "German",
     num_ctx: int = 16384,
     seed: int = 42,
     temperature: float = 0.1,
@@ -99,6 +100,7 @@ def call_ollama_server(
         model (str | None): The name of the model to use.
         prompt (str): The prompt to send to the model.
         think (bool): Whether to enable "think" mode for the model. Defaults to False.
+        language (str): The language for the system prompt. Defaults to "German".
         num_ctx (int): The number of context tokens to use. Defaults to 16384.
         seed (int): The random seed for the model's response. Defaults to 42.
         temperature (float): The temperature for the model's response. Defaults to 0.1.
@@ -133,7 +135,10 @@ def call_ollama_server(
     response = ollama.chat(
         model=model,
         think=think,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[
+            {"role": "system", "content": load_prompt().format(language=language)},
+            {"role": "user", "content": prompt}
+        ],
         options={
             # Only include num_ctx when positive; -1 or 0 lets the server/model default
             **({"num_ctx": num_ctx} if isinstance(num_ctx, int) and num_ctx > 0 else {}),
@@ -143,7 +148,6 @@ def call_ollama_server(
             "top_k": top_k,
             "top_p": top_p,
             "num_predict": num_predict,
-            # Stop at newline just in case a model tries to ramble
             "stop": stop,
         },
     )
