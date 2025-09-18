@@ -1,5 +1,5 @@
 {
     "cuda": "qwen3:14b", 
     "mps": "qwen3:8b", 
-    "cpu": "gemma3n:e4b"
+    "cpu": "qwen3:4b"
 }
