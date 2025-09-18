@@ -93,4 +93,5 @@ docker-compose.override.yml
 # ==================================
 # Exceptions
 # ==================================
-!frontend/index.html
+!hate.txt
+!system.txt
